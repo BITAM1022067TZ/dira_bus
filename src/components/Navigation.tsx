@@ -47,17 +47,19 @@ export const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChang
         <Button
           key={item.id}
           variant={currentView === item.id ? 'default' : 'ghost'}
-          className="w-full justify-start"
+          className={`w-full justify-start text-white hover:bg-[#00CC94] ${
+            currentView === item.id ? 'bg-[#00E6A8]' : ''
+          }`}
           onClick={() => onViewChange(item.id)}
         >
           <item.icon className="h-4 w-4 mr-2" />
           {item.label}
         </Button>
       ))}
-      <hr className="my-4" />
+      <hr className="my-4 border-[#00CC94]" />
       <Button
         variant="ghost"
-        className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+        className="w-full justify-start text-white hover:text-[#00CC94] hover:bg-[#007A63]"
         onClick={logout}
       >
         <LogOut className="h-4 w-4 mr-2" />
@@ -69,20 +71,20 @@ export const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChang
   return (
     <>
       {/* Desktop Navigation */}
-      <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-screen p-4">
+      <div className="hidden md:flex flex-col w-64 bg-[#009F7F] text-white h-screen p-4">
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
-            <Bus className="h-6 w-6 text-primary" />
+            <Bus className="h-6 w-6 text-[#A7FFF0]" />
             <h1 className="text-xl font-bold">DiraBus</h1>
           </div>
-          <p className="text-sm text-muted-foreground">Bus Booking System</p>
+          <p className="text-sm text-[#D2FFF8]">Bus Booking System</p>
         </div>
 
         {user && (
-          <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+          <div className="mb-6 p-3 bg-[#008F72] rounded-lg">
             <div className="font-medium">{user.firstName} {user.lastName}</div>
-            <div className="text-sm text-muted-foreground">{user.email}</div>
-            <Badge variant="outline" className="mt-2">
+            <div className="text-sm text-[#A7FFF0]">{user.email}</div>
+            <Badge variant="outline" className="mt-2 border-[#00E6A8] text-[#E6FFFA]">
               {user.role}
             </Badge>
           </div>
@@ -93,25 +95,25 @@ export const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChang
 
       {/* Mobile Navigation */}
       <div className="md:hidden">
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b border-[#008F72] bg-[#009F7F] text-white">
           <div className="flex items-center gap-2">
-            <Bus className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">ZanziBus</h1>
+            <Bus className="h-6 w-6 text-[#A7FFF0]" />
+            <h1 className="text-xl font-bold">DiraBus</h1>
           </div>
           
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="bg-[#008F72] text-white hover:bg-[#00CC94]">
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64">
+            <SheetContent side="left" className="w-64 bg-[#009F7F] text-white">
               <div className="py-4">
                 {user && (
-                  <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+                  <div className="mb-6 p-3 bg-[#008F72] rounded-lg">
                     <div className="font-medium">{user.firstName} {user.lastName}</div>
-                    <div className="text-sm text-muted-foreground">{user.email}</div>
-                    <Badge variant="outline" className="mt-2">
+                    <div className="text-sm text-[#A7FFF0]">{user.email}</div>
+                    <Badge variant="outline" className="mt-2 border-[#00E6A8] text-[#E6FFFA]">
                       {user.role}
                     </Badge>
                   </div>

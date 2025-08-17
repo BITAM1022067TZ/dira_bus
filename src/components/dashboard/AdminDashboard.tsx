@@ -109,7 +109,7 @@ export const AdminDashboard: React.FC = () => {
     <div className="space-y-6">
       <Card>
         <CardContent className="pt-6 flex items-center gap-4">
-          <div className="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center">
             <Settings className="h-8 w-8" />
           </div>
           <div>
@@ -122,7 +122,7 @@ export const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card>
           <CardContent className="pt-6 flex items-center gap-3">
-            <Users className="h-8 w-8 text-blue-600" />
+            <Users className="h-8 w-8 text-yellow-600" />
             <div>
               <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
               <div className="text-sm text-muted-foreground">Total Users</div>

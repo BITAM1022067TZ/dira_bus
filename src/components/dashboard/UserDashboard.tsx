@@ -1,146 +1,139 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Calendar, MapPin, CreditCard, User } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Calendar, MapPin, CreditCard, User } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface Booking {
   id: string;
   receipt_id: string;
-  travelDate: string;    // ISO string
-  bookingDate: string;   // ISO string
-  status: string;        // e.g. confirmed, cancelled, completed
-  seats: string[];       // seat numbers
-  passengerInfo: any[];  // passenger details
-  totalPrice: number;    // total price in TSh
+  travelDate: string; // ISO string
+  bookingDate: string; // ISO string
+  status: string; // e.g. confirmed, cancelled, completed
+  seats: string[]; // seat numbers
+  passengerInfo: any[]; // passenger details
+  totalPrice: number; // total price in TSh
 }
 
 export const UserDashboard: React.FC = () => {
   const { user, token } = useAuth();
 
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [stats, setStats] = useState<{ totalBookingscounts: number; totalSpent: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load bookings from API
+  // Load bookings + stats
   useEffect(() => {
     if (!user || !token) {
-      setError('User is not authenticated');
+      setError("User is not authenticated");
       setIsLoading(false);
       return;
     }
 
     const loadUserBookings = async () => {
-      setIsLoading(true);
-      setError(null);
-
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/user/bookings/', {
+        const response = await fetch("http://127.0.0.1:8000/api/user/bookings/", {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(`Error loading bookings: ${response.status} - ${text}`);
-        }
-
         const data = await response.json();
-
-        if (data.success) {
+        if (response.ok && data.success) {
           setBookings(data.data || []);
         } else {
-          setError(data.message || 'Failed to load bookings');
+          setError(data.message || "Failed to load bookings");
         }
       } catch (err: any) {
-        setError(err.message || 'Network or server error');
+        setError(err.message || "Network or server error");
+      }
+    };
+
+    const loadUserStats = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/user/stats/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          setStats(data.data);
+        } else {
+          setError(data.message || "Failed to load user stats");
+        }
+      } catch (err: any) {
+        setError(err.message || "Network or server error");
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUserBookings();
+    loadUserStats();
   }, [user, token]);
 
-  // Normalize current date to midnight for accurate date comparisons
+  // Normalize current date to midnight
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Filter upcoming bookings: travelDate >= today AND NOT cancelled
+  // Upcoming bookings
   const upcomingBookings = bookings.filter((b) => {
     const travelDate = new Date(b.travelDate);
     travelDate.setHours(0, 0, 0, 0);
-    return travelDate >= today && b.status !== 'cancelled';
+    return travelDate >= today && b.status !== "cancelled";
   });
 
-  // Filter past bookings: travelDate < today OR completed status
+  // Past bookings
   const pastBookings = bookings.filter((b) => {
     const travelDate = new Date(b.travelDate);
     travelDate.setHours(0, 0, 0, 0);
-    return travelDate < today || b.status === 'completed';
+    return travelDate < today || b.status === "completed";
   });
 
-  // Calculate total spent: sum totalPrice of non-cancelled bookings
-  const totalSpent = bookings.reduce((acc, b) => {
-    if (b.status !== 'cancelled') {
-      return acc + (Number(b.totalPrice) || 0);
-    }
-    return acc;
-  }, 0);
-
-  // Status color helper for badges
+  // Status badge color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed':
-        return 'default';
-      case 'pending':
-        return 'secondary';
-      case 'cancelled':
-        return 'destructive';
-      case 'completed':
-        return 'outline';
+      case "confirmed":
+        return "default";
+      case "pending":
+        return "secondary";
+      case "cancelled":
+        return "destructive";
+      case "completed":
+        return "outline";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
-  // Placeholder handlers — replace with real navigation/actions
-  const handleBookFirstTrip = () => {
-    console.log('Navigate to booking page');
-  };
-  const handleViewDetails = (bookingId: string) => {
-    console.log('View details for booking:', bookingId);
-  };
-  const handleCancelBooking = (bookingId: string) => {
-    console.log('Cancel booking:', bookingId);
-  };
-  const handleViewReceipt = (bookingId: string) => {
-    console.log('View receipt for booking:', bookingId);
-  };
-  const handleBookAgain = (bookingId: string) => {
-    console.log('Book again based on booking:', bookingId);
-  };
+  // Handlers
+  const handleBookFirstTrip = () => console.log("Navigate to booking page");
+  const handleViewDetails = (bookingId: string) => console.log("View details:", bookingId);
+  const handleCancelBooking = (bookingId: string) => console.log("Cancel booking:", bookingId);
+  const handleViewReceipt = (bookingId: string) => console.log("View receipt:", bookingId);
+  const handleBookAgain = (bookingId: string) => console.log("Book again:", bookingId);
 
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <Card>
+      <Card className="bg-gray-200 text-gray-800">
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-gray-400 text-white rounded-full flex items-center justify-center">
               <User className="h-8 w-8" />
             </div>
             <div>
               <h2 className="text-2xl font-bold">
-                Welcome back, {user?.firstName || user?.username || 'User'}!
+                Welcome {user?.firstName || user?.username || "User"}!
               </h2>
-              <p className="text-muted-foreground">
-                Manage your bus bookings and travel history
-              </p>
+              <p className="text-green-600">Manage your bus bookings and travel history</p>
             </div>
           </div>
         </CardContent>
@@ -148,30 +141,36 @@ export const UserDashboard: React.FC = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* <Card>
-            <CardContent className="pt-6 flex items-center gap-3">
-              <Calendar className="h-8 w-8 text-blue-600" />
-              <div>
-                <div className="text-2xl font-bold">{upcomingBookings.length}</div>
-                <div className="text-sm text-muted-foreground">Upcoming Trips</div>
-              </div>
-            </CardContent>
-          </Card> */}
         <Card>
           <CardContent className="pt-6 flex items-center gap-3">
-            <MapPin className="h-8 w-8 text-green-600" />
+            <Calendar className="h-8 w-8 text-blue-600" />
             <div>
-              <div className="text-2xl font-bold">{bookings.length}</div>
-              <div className="text-sm text-muted-foreground">Total Bookings</div>
+              <div className="text-2xl font-bold">{upcomingBookings.length}</div>
+              <div className="text-sm text-muted-foreground">Upcoming Trips</div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6 flex items-center gap-3">
-            <CreditCard className="h-8 w-8 text-purple-600" />
+
+        <Card className="bg-red-50 border border-red-300 shadow-md">
+          <CardContent className="pt-6 flex items-center gap-2 justify-center">
+            <MapPin className="h-8 w-8 text-green-500" />
             <div>
-              <div className="text-2xl font-bold">{totalSpent.toLocaleString()}</div>
-              <div className="text-sm text-muted-foreground">Total Spent (TSh)</div>
+              <div className="text-2xl font-bold text-black-700">
+                {stats ? stats.totalBookingscounts : 0}
+              </div>
+              <div className="text-sm text-red-600">Total Bookings</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-yellow-50 border border-yellow-300 shadow-md ml-auto w-64">
+          <CardContent className="pt-6 flex items-center gap-2 justify-center">
+            <CreditCard className="h-8 w-8 text-red-600" />
+            <div>
+              <div className="text-2xl font-bold text-black-700">
+                {stats ? stats.totalSpent.toLocaleString() : 0}
+              </div>
+              <div className="text-sm text-yellow-600">Total Spent (TSh)</div>
             </div>
           </CardContent>
         </Card>
@@ -185,10 +184,15 @@ export const UserDashboard: React.FC = () => {
         <CardContent>
           <Tabs defaultValue="upcoming" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="upcoming">Upcoming ({upcomingBookings.length})</TabsTrigger>
-              <TabsTrigger value="past">Past ({pastBookings.length})</TabsTrigger>
+              <TabsTrigger value="upcoming">
+                Upcoming ({upcomingBookings.length})
+              </TabsTrigger>
+              <TabsTrigger value="past">
+                Past ({pastBookings.length})
+              </TabsTrigger>
             </TabsList>
 
+            {/* Upcoming */}
             <TabsContent value="upcoming" className="mt-6">
               {isLoading ? (
                 <div className="text-center py-8">Loading bookings...</div>
@@ -208,14 +212,12 @@ export const UserDashboard: React.FC = () => {
                             Travel Date: {new Date(booking.travelDate).toLocaleDateString()}
                           </div>
                         </div>
-                        <Badge variant={getStatusColor(booking.status)}>
-                          {booking.status}
-                        </Badge>
+                        <Badge variant={getStatusColor(booking.status)}>{booking.status}</Badge>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <span className="text-muted-foreground">Seats:</span>
-                          <div className="font-medium">{booking.seats.join(', ')}</div>
+                          <div className="font-medium">{booking.seats.join(", ")}</div>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Passengers:</span>
@@ -223,9 +225,7 @@ export const UserDashboard: React.FC = () => {
                         </div>
                         <div>
                           <span className="text-muted-foreground">Amount:</span>
-                          <div className="font-medium">
-                            TSh {booking.totalPrice?.toLocaleString() || 0}
-                          </div>
+                          <div className="font-medium">TSh {booking.totalPrice?.toLocaleString() || 0}</div>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Booked:</span>
@@ -236,7 +236,7 @@ export const UserDashboard: React.FC = () => {
                         <Button size="sm" variant="outline" onClick={() => handleViewDetails(booking.id)}>
                           View Details
                         </Button>
-                        {booking.status === 'confirmed' && (
+                        {booking.status === "confirmed" && (
                           <Button size="sm" variant="outline" onClick={() => handleCancelBooking(booking.id)}>
                             Cancel Booking
                           </Button>
@@ -248,6 +248,7 @@ export const UserDashboard: React.FC = () => {
               )}
             </TabsContent>
 
+            {/* Past */}
             <TabsContent value="past" className="mt-6">
               {isLoading ? (
                 <div className="text-center py-8">Loading bookings...</div>
@@ -266,14 +267,12 @@ export const UserDashboard: React.FC = () => {
                             Travel Date: {new Date(booking.travelDate).toLocaleDateString()}
                           </div>
                         </div>
-                        <Badge variant={getStatusColor(booking.status)}>
-                          {booking.status}
-                        </Badge>
+                        <Badge variant={getStatusColor(booking.status)}>{booking.status}</Badge>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <span className="text-muted-foreground">Seats:</span>
-                          <div className="font-medium">{booking.seats.join(', ')}</div>
+                          <div className="font-medium">{booking.seats.join(", ")}</div>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Passengers:</span>
@@ -281,9 +280,7 @@ export const UserDashboard: React.FC = () => {
                         </div>
                         <div>
                           <span className="text-muted-foreground">Amount:</span>
-                          <div className="font-medium">
-                            TSh {booking.totalPrice?.toLocaleString() || 0}
-                          </div>
+                          <div className="font-medium">TSh {booking.totalPrice?.toLocaleString() || 0}</div>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Booked:</span>
@@ -307,10 +304,8 @@ export const UserDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Display error if any */}
-      {error && (
-        <div className="text-center text-red-600 font-medium">{error}</div>
-      )}
+      {/* Error */}
+      {error && <div className="text-center text-red-600 font-medium">{error}</div>}
     </div>
   );
 };
